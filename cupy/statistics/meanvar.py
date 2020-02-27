@@ -5,7 +5,8 @@ import cupy
 from cupy.core import _routines_statistics as _statistics
 
 
-# TODO(okuta): Implement median
+def median(a, axis=None, out=None, overwrite_input=False, keepdims=False):
+    a = cupy.asanyarray(a)
 
 
 def average(a, axis=None, weights=None, returned=False):

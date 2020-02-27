@@ -5,6 +5,7 @@ from cupy import core
 from cupy.core import _routines_statistics as _statistics
 from cupy.core import fusion
 from cupy.logic import content
+from cupy.statistics.utils import _ureduce
 
 
 def amin(a, axis=None, out=None, keepdims=False):
@@ -196,29 +197,7 @@ def percentile(a, q, axis=None, out=None, interpolation='linear',
         raise ValueError('Expected q to have a dimension of 1.\n'
                          'Actual: {0} != 1'.format(q.ndim))
 
-    if keepdims:
-        if axis is None:
-            keepdim = (1,) * a.ndim
-        else:
-            keepdim = list(a.shape)
-            for ax in axis:
-                keepdim[ax % a.ndim] = 1
-            keepdim = tuple(keepdim)
-
-    # Copy a since we need it sorted but without modifying the original array
-    if isinstance(axis, int):
-        axis = axis,
-    if axis is None:
-        ap = a.flatten()
-        nkeep = 0
-    else:
-        # Reduce axes from a and put them last
-        axis = tuple(ax % a.ndim for ax in axis)
-        keep = set(range(a.ndim)) - set(axis)
-        nkeep = len(keep)
-        for i, s in enumerate(sorted(keep)):
-            a = a.swapaxes(i, s)
-        ap = a.reshape(a.shape[:nkeep] + (-1,)).copy()
+    ap, keepdim, axis = _ureduce(a, axis, keepdims)
 
     axis = -1
     ap.sort(axis=axis)
