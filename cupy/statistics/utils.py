@@ -37,6 +37,7 @@ def _ureduce(a, axis, keepdims):
     # Copy a since we need it sorted but without modifying the original array
     if isinstance(axis, int):
         ap = a
+        axis = axis
     elif axis is None:
         ap = a.flatten()
         nkeep = 0
