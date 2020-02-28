@@ -3,10 +3,45 @@ import numpy
 
 import cupy
 from cupy.core import _routines_statistics as _statistics
+from cupy.statistics.utils import _ureduce
 
 
-def median(a, axis=None, out=None, overwrite_input=False, keepdims=False):
-    a = cupy.asanyarray(a)
+def median(a, axis=None, out=None, keepdims=False):
+    # TODO docstring
+    a = cupy.asarray(a)
+    a, keepdim, axis = _ureduce(a, axis=axis, keepdims=keepdims)
+    if axis is None:
+        sz = a.size
+    else:
+        sz = a.shape[axis]
+    if sz % 2 == 0:
+        szh = sz // 2
+        kth = [szh - 1, szh]
+    else:
+        kth = [(sz - 1) // 2]
+
+    part = cupy.partition(a, kth, axis=axis)
+
+    if part.shape == ():
+        if keepdim:
+            return part.item().reshape(keepdim)
+        else:
+            return part.item()
+    if axis is None:
+        axis = 0
+
+    indexer = [slice(None)] * part.ndim
+    index = part.shape[axis] // 2
+    if part.shape[axis] % 2 == 1:
+        indexer[axis] = slice(index, index+1)
+    else:
+        indexer[axis] = slice(index-1, index+1)
+    indexer = tuple(indexer)
+
+    if keepdim:
+        return cupy.mean(part[indexer], axis=axis, out=out).reshape(keepdim)
+    else:
+        return cupy.mean(part[indexer], axis=axis, out=out)
 
 
 def average(a, axis=None, weights=None, returned=False):

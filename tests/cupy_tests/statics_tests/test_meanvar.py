@@ -371,6 +371,69 @@ class TestNanVarStdAdditional(unittest.TestCase):
         return xp.nanstd(a, axis=1)
 
 
+@testing.gpu
+class TestMedian(unittest.TestCase):
+
+    _multiprocess_can_split_ = True
+
+    @testing.for_all_dtypes(no_float16=True, no_bool=True, no_complex=True)
+    @testing.numpy_cupy_allclose()
+    def test_median_all(self, xp, dtype):
+        a = testing.shaped_arange((2, 3), xp, dtype)
+        return xp.median(a)
+
+    @testing.for_all_dtypes(no_float16=True, no_bool=True, no_complex=True)
+    @testing.numpy_cupy_allclose()
+    def test_median_axis(self, xp, dtype):
+        a = testing.shaped_arange((2, 3, 4), xp, dtype)
+        return xp.median(a, axis=1)
+
+    @testing.for_all_dtypes(no_float16=True, no_bool=True, no_complex=True)
+    @testing.numpy_cupy_allclose()
+    def test_median_keepdims(self, xp, dtype):
+        a = testing.shaped_arange((2, 3), xp, dtype)
+        keepdims = True
+        return xp.median(a, keepdims=keepdims)
+
+    @testing.for_all_dtypes(no_float16=True, no_bool=True, no_complex=True)
+    @testing.numpy_cupy_allclose()
+    def test_median_axis_keepdims(self, xp, dtype):
+        a = testing.shaped_arange((2, 3, 4), xp, dtype)
+        keepdims = True
+        return xp.median(a, axis=(2), keepdims=keepdims)
+
+    @testing.for_all_dtypes(no_float16=True, no_bool=True, no_complex=True)
+    @testing.numpy_cupy_allclose()
+    def test_median_axis_multiple_keepdims(self, xp, dtype):
+        a = testing.shaped_arange((2, 3, 4), xp, dtype)
+        keepdims = True
+        return xp.median(a, axis=(0, 2), keepdims=keepdims)
+
+    @testing.for_all_dtypes(no_float16=True, no_bool=True, no_complex=True)
+    @testing.numpy_cupy_allclose()
+    def test_median_axis_multiple(self, xp, dtype):
+        a = testing.shaped_arange((2, 3, 4), xp, dtype)
+        return xp.median(a, axis=(0, 2))
+
+    def check_returned(self, a, axis, keepdims):
+        median_cpu = numpy.median(a, axis, keepdims=keepdims)
+        median_gpu = cupy.median(cupy.asarray(a), axis, keepdims=keepdims)
+        testing.assert_allclose(median_cpu, median_gpu)
+
+    @testing.for_all_dtypes(no_float16=True, no_bool=True, no_complex=True)
+    def test_returned(self, dtype):
+        a = testing.shaped_arange((2, 3), numpy, dtype)
+        self.check_returned(a, axis=1, keepdims=True)
+        self.check_returned(a, axis=None, keepdims=False)
+        self.check_returned(a, axis=(0, 1), keepdims=True)
+
+    @testing.for_all_dtypes(no_float16=True, no_bool=True, no_complex=True)
+    def test_axis_dimensions(self, dtype):
+        a = cupy.random.rand(3, 3, 3)
+        with pytest.raises(ValueError):
+            cupy.median(a, axis=4)
+
+
 @testing.parameterize(*testing.product({
     'params': [
         ((), None),

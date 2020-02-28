@@ -25,6 +25,7 @@ Means and variances
    :nosignatures:
 
    cupy.average
+   cupy.median
    cupy.mean
    cupy.var
    cupy.std
