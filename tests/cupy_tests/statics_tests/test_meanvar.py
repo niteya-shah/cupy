@@ -404,35 +404,55 @@ class TestMedian(unittest.TestCase):
 
     @testing.for_all_dtypes(no_float16=True, no_bool=True, no_complex=True)
     @testing.numpy_cupy_allclose()
+    def test_median_axis_multiple(self, xp, dtype):
+        a = testing.shaped_arange((2, 3, 4), xp, dtype)
+        return xp.median(a, axis=(0, 2))
+
+    @testing.for_all_dtypes(no_float16=True, no_bool=True, no_complex=True)
+    @testing.numpy_cupy_allclose()
     def test_median_axis_multiple_keepdims(self, xp, dtype):
         a = testing.shaped_arange((2, 3, 4), xp, dtype)
         keepdims = True
         return xp.median(a, axis=(0, 2), keepdims=keepdims)
 
     @testing.for_all_dtypes(no_float16=True, no_bool=True, no_complex=True)
-    @testing.numpy_cupy_allclose()
-    def test_median_axis_multiple(self, xp, dtype):
-        a = testing.shaped_arange((2, 3, 4), xp, dtype)
-        return xp.median(a, axis=(0, 2))
-
-    def check_returned(self, a, axis, keepdims):
-        median_cpu = numpy.median(a, axis, keepdims=keepdims)
-        median_gpu = cupy.median(cupy.asarray(a), axis, keepdims=keepdims)
-        testing.assert_allclose(median_cpu, median_gpu)
-
-    @testing.for_all_dtypes(no_float16=True, no_bool=True, no_complex=True)
-    def test_returned(self, dtype):
-        a = testing.shaped_arange((2, 3), numpy, dtype)
-        self.check_returned(a, axis=1, keepdims=True)
-        self.check_returned(a, axis=None, keepdims=False)
-        self.check_returned(a, axis=(0, 1), keepdims=True)
-
-    @testing.for_all_dtypes(no_float16=True, no_bool=True, no_complex=True)
-    def test_axis_dimensions(self, dtype):
+    def test_median_axis_dimensions(self, dtype):
         a = cupy.random.rand(3, 3, 3)
         with pytest.raises(ValueError):
             cupy.median(a, axis=4)
 
+    @testing.for_all_dtypes(no_float16=True, no_bool=True, no_complex=True)
+    @testing.numpy_cupy_allclose()
+    def test_median_negative_axes(self, xp, dtype):
+        a = testing.shaped_arange((2, 3, 4), xp, dtype)
+        return xp.median(a, axis=(-1, -2))
+
+    @testing.for_all_dtypes(no_float16=True, no_bool=True, no_complex=True)
+    @testing.numpy_cupy_allclose()
+    def test_median_negative_axis(self, xp, dtype):
+        a = testing.shaped_arange((2, 3, 4), xp, dtype)
+        return xp.median(a, axis=-1)
+
+    @testing.for_all_dtypes(no_float16=True, no_bool=True, no_complex=True)
+    @testing.numpy_cupy_allclose()
+    def test_median_out(self, xp, dtype):
+        out = xp.zeros(3)
+        a = testing.shaped_arange((2, 3, 4), xp, dtype)
+        xp.median(a, axis=(0, 2), out=out)
+        return out
+   
+    @testing.for_all_dtypes(no_float16=True, no_bool=True, no_complex=True)
+    def test_median_out_wrong(self, dtype):
+        a = cupy.random.rand(3, 3, 3)
+        out = cupy.zeros(4)
+        with pytest.raises(ValueError):
+            cupy.median(a, out=out)
+
+    @testing.for_all_dtypes(no_float16=True, no_bool=True, no_complex=True)
+    def test_median_repeated_axis(self, dtype):
+        a = cupy.random.rand(3, 3)
+        with pytest.raises(ValueError):
+            cupy.median(a, axis=(0, -2))
 
 @testing.parameterize(*testing.product({
     'params': [

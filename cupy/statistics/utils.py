@@ -1,26 +1,7 @@
 def _ureduce(a, axis, keepdims):
-    # TODO Fix helper doc
-
     """
-    Internal Function.
-    Call `func` with `a` as first argument swapping the axes to use extended
-    axis on functions that don't support it natively.
-    Returns result and a.shape with axis dims set to 1.
-    Parameters
-    ----------
-    a : array_like
-        Input array or object that can be converted to an array.
-    func : callable
-        Reduction function capable of receiving a single axis argument.
-        It is called with `a` as first argument followed by `kwargs`.
-    kwargs : keyword arguments
-        additional keyword arguments to pass to `func`.
-    Returns
-    -------
-    result : tuple
-        Result of func(a, **kwargs) and a.shape with axis dims set to 1
-        which can be used to reshape the result to the same shape a ufunc with
-        keepdims=True would produce.
+    Internal Function which converts the input array into
+    the required shape as specified by the axis and keepdims.
     """
     keepdim = None
     if isinstance(axis, int):
@@ -50,6 +31,9 @@ def _ureduce(a, axis, keepdims):
                 raise(ValueError("Axis value specified {} out of dimension"
                                  " for array dimensions {}"
                                  .format(ax, a.ndim)))
+            elif ax % a.ndim in temp_list:
+                raise(ValueError("repeated axis {} specified"
+                                 .format(ax % a.ndim)))
             else:
                 temp_list.append(ax % a.ndim)
         axis = tuple(temp_list)

@@ -7,7 +7,25 @@ from cupy.statistics.utils import _ureduce
 
 
 def median(a, axis=None, out=None, keepdims=False):
-    # TODO docstring
+    """Compute the median along the specified axis.
+        Returns the median of the array elements.
+
+    Args:
+        a (array-like) : Input array or object that can be converted to an
+            array.
+        axis : {int, sequence of int, None}, Along which axis to compute
+            median. The flattened array is used by default.
+        out (cupy.ndarray): Output array.
+        keepdims (bool): If ``True``, the axis is remained as an axis of
+            size one.
+
+    Returns:
+        cupy.ndarray: The median of the input array along the axis.
+
+     .. seealso:: :func:`numpy.median`
+
+    """
+
     a = cupy.asarray(a)
     a, keepdim, axis = _ureduce(a, axis=axis, keepdims=keepdims)
     if axis is None:
